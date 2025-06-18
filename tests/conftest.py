@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 
 from app.db import get_db
 from app.models import Base  # Your declarative base
-from app.routes import app
+from app.main import app
 
 TEST_DATABASE_URL = "sqlite:///:memory:"
 
