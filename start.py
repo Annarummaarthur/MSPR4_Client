@@ -25,7 +25,7 @@ def check_env_file():
 
 def start_server():
     print("🚀 Démarrage de l'API avec Uvicorn...")
-    uvicorn.run("main:app", reload=True)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
 
 
 if __name__ == "__main__":
