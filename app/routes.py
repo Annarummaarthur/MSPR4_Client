@@ -18,6 +18,11 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Security(security))
         raise HTTPException(status_code=403, detail="Accès interdit")
 
 
+@router.get("/")
+def read_root():
+    return {"message": "API is running"}
+
+
 @router.post("/clients", response_model=Client)
 def create_client(
     client: Client,
