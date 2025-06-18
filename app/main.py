@@ -4,7 +4,7 @@ from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import Column, Integer, String
-from db import SessionLocal, Base, engine
+from app.db import SessionLocal, Base, engine
 from dotenv import load_dotenv
 import os
 import uvicorn

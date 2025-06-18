@@ -1,6 +1,5 @@
-import pytest
 from fastapi.testclient import TestClient
-from main import app
+from app.main import app
 import os
 
 API_TOKEN = os.getenv("API_TOKEN")

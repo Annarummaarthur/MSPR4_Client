@@ -1,0 +1,36 @@
+name: CI Pipeline - client-api
+
+on:
+  push:
+    branches:
+      - 'main'
+      - 'développement'
+      - 'feature/**'
+  pull_request:
+    branches:
+      - 'main'
+      - 'développement'
+      - 'feature/**'
+
+jobs:
+  test-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install black flake8 pytest pytest-cov
+
+      - name: Lint code
+        run: black . --check && flake8 .
+
+      - name: Run tests
+        run: pytest --cov=. --cov-fail-under=95
