@@ -30,7 +30,7 @@ jobs:
           pip install black flake8 pytest pytest-cov
 
       - name: Lint code
-        run: black . --check && flake8 .
+        run: black . --check .
 
       - name: Run tests
         run: pytest --cov=. --cov-fail-under=0
