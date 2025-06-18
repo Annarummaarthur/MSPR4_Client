@@ -82,7 +82,7 @@ def get_db():
 def create_client(
     client: Client,
     db: Session = Depends(get_db),
-    _: HTTPAuthorizationCredentials = Security(verify_token)
+        _: HTTPAuthorizationCredentials = Security(verify_token),
 ):
     db_client = ClientModel(**client.model_dump())
     db.add(db_client)
@@ -94,7 +94,7 @@ def create_client(
 @app.get("/clients", response_model=List[Client])
 def list_clients(
     db: Session = Depends(get_db),
-    _: HTTPAuthorizationCredentials = Security(verify_token)
+        _: HTTPAuthorizationCredentials = Security(verify_token),
 ):
     return db.query(ClientModel).all()
 
@@ -103,7 +103,7 @@ def list_clients(
 def get_client(
     client_id: int,
     db: Session = Depends(get_db),
-    _: HTTPAuthorizationCredentials = Security(verify_token)
+        _: HTTPAuthorizationCredentials = Security(verify_token),
 ):
     client = db.query(ClientModel).filter(ClientModel.id == client_id).first()
     if not client:
@@ -116,7 +116,7 @@ def update_client(
     client_id: int,
     updated_client: ClientUpdate,
     db: Session = Depends(get_db),
-    _: HTTPAuthorizationCredentials = Security(verify_token)
+        _: HTTPAuthorizationCredentials = Security(verify_token),
 ):
     client = db.query(ClientModel).filter(ClientModel.id == client_id).first()
     if not client:
@@ -132,7 +132,7 @@ def update_client(
 def delete_client(
     client_id: int,
     db: Session = Depends(get_db),
-    _: HTTPAuthorizationCredentials = Security(verify_token)
+        _: HTTPAuthorizationCredentials = Security(verify_token),
 ):
     client = db.query(ClientModel).filter(ClientModel.id == client_id).first()
     if not client:
