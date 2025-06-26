@@ -1,5 +1,10 @@
 name: 'functions-tests'
 on:
+  push:
+    branches:
+      - 'main'
+      - 'développement'
+      - 'feature/**'
   pull_request:
 jobs:
   build:
