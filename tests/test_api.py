@@ -137,6 +137,14 @@ def test_update_client(client, auth_headers, mock_db_session):
     mock_client = MagicMock()
     mock_client.id = 1
     mock_client.name = "Old Name"
+    mock_client.email = "old@example.com"
+    mock_client.phone = "1234567890"
+    mock_client.username = "oldusername"
+    mock_client.postal_code = "12345"
+    mock_client.city = "Old City"
+    mock_client.profile_first_name = "Old"
+    mock_client.profile_last_name = "Name"
+    mock_client.company_name = "Old Company"
 
     mock_query = MagicMock()
     mock_query.filter.return_value.first.return_value = mock_client
@@ -147,8 +155,10 @@ def test_update_client(client, auth_headers, mock_db_session):
         json={"name": "Updated Client"},
         headers=auth_headers,
     )
+
     assert response.status_code == 200
-    assert response.json()["name"] == "Updated Client"
+    data = response.json()
+    assert data["name"] == "Updated Client"
 
 
 def test_delete_client(client, auth_headers, mock_db_session):
