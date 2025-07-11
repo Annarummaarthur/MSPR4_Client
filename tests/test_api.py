@@ -52,7 +52,6 @@ def test_create_client(client, auth_headers, mock_db_session):
 
 
 def test_list_clients(client, auth_headers, mock_db_session):
-    # Setup the mock query.all()
     mock_client1 = MagicMock()
     mock_client1.id = 1
     mock_client1.name = "Client 1"

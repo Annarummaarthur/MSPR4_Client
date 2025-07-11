@@ -13,7 +13,30 @@ on:
       - 'feature/**'
 
 jobs:
-  test-lint:
+  lint:
+    name: Lint code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install linters
+        run: |
+          pip install black flake8
+
+      - name: Run black
+        run: black . --check .
+
+      - name: Run flake8
+        run: flake8 .
+
+  test:
+    name: Run tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -27,7 +50,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          pip install black flake8 pytest pytest-cov
+          pip install pytest pytest-cov
 
-      - name: Lint code
-        run: black . --check .
+      - name: Run pytest with coverage
+        run: pytest --cov=app --cov-report=term-missing
