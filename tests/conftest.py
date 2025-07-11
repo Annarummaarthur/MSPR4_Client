@@ -1,34 +1,34 @@
-import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+import os
 
+import pytest
+from unittest.mock import MagicMock
 from app.db import get_db
-from app.models import Base
 from app.main import app
 
-TEST_DATABASE_URL = "sqlite:///:memory:"
-
-engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-Base.metadata.create_all(bind=engine)
+API_TOKEN = os.getenv("API_TOKEN")
 
 
-Base.metadata.create_all(bind=engine)
+@pytest.fixture
+def auth_headers():
+    return {"Authorization": f"Bearer {API_TOKEN}"}
 
 
-def override_get_db():
-    db = TestingSessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+@pytest.fixture
+def mock_db_session():
+    return MagicMock()
 
 
-app.dependency_overrides[get_db] = override_get_db
+@pytest.fixture(autouse=True)
+def override_get_db(mock_db_session):
+    def _get_db_override():
+        yield mock_db_session
+
+    app.dependency_overrides[get_db] = _get_db_override
+    yield
+    app.dependency_overrides.clear()
 
 
-@pytest.fixture()
+@pytest.fixture
 def client():
     from fastapi.testclient import TestClient
 
