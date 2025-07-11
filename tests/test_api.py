@@ -55,25 +55,74 @@ def test_list_clients(client, auth_headers, mock_db_session):
     mock_client1 = MagicMock()
     mock_client1.id = 1
     mock_client1.name = "Client 1"
+    mock_client1.email = "client1@example.com"
+    mock_client1.phone = "1234567890"
+    mock_client1.username = "client1user"
+    mock_client1.postal_code = "12345"
+    mock_client1.city = "City1"
+    mock_client1.profile_first_name = "John"
+    mock_client1.profile_last_name = "Doe"
+    mock_client1.company_name = "Company1"
+
     mock_client2 = MagicMock()
     mock_client2.id = 2
     mock_client2.name = "Client 2"
+    mock_client2.email = "client2@example.com"
+    mock_client2.phone = "0987654321"
+    mock_client2.username = "client2user"
+    mock_client2.postal_code = "54321"
+    mock_client2.city = "City2"
+    mock_client2.profile_first_name = "Jane"
+    mock_client2.profile_last_name = "Smith"
+    mock_client2.company_name = "Company2"
 
     mock_query = MagicMock()
     mock_query.all.return_value = [mock_client1, mock_client2]
     mock_db_session.query.return_value = mock_query
 
     response = client.get("/clients", headers=auth_headers)
+
     assert response.status_code == 200
-    data = response.json()
-    assert isinstance(data, list)
-    assert len(data) == 2
+    assert response.json() == [
+        {
+            "id": 1,
+            "name": "Client 1",
+            "email": "client1@example.com",
+            "phone": "1234567890",
+            "username": "client1user",
+            "postal_code": "12345",
+            "city": "City1",
+            "profile_first_name": "John",
+            "profile_last_name": "Doe",
+            "company_name": "Company1",
+        },
+        {
+            "id": 2,
+            "name": "Client 2",
+            "email": "client2@example.com",
+            "phone": "0987654321",
+            "username": "client2user",
+            "postal_code": "54321",
+            "city": "City2",
+            "profile_first_name": "Jane",
+            "profile_last_name": "Smith",
+            "company_name": "Company2",
+        },
+    ]
 
 
 def test_get_client(client, auth_headers, mock_db_session):
     mock_client = MagicMock()
     mock_client.id = 1
     mock_client.name = "Test Client"
+    mock_client.email = "test@example.com"
+    mock_client.phone = "+33123456789"
+    mock_client.username = "testuser"
+    mock_client.postal_code = "75000"
+    mock_client.city = "Paris"
+    mock_client.profile_first_name = "Jean"
+    mock_client.profile_last_name = "Dupont"
+    mock_client.company_name = "TestCorp"
 
     mock_query = MagicMock()
     mock_query.filter.return_value.first.return_value = mock_client
