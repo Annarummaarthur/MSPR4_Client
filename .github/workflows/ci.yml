@@ -38,6 +38,11 @@ jobs:
   test:
     name: Run tests
     runs-on: ubuntu-latest
+
+    nv:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      API_TOKEN: ${{secrets.API_TOKEN }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -55,6 +60,4 @@ jobs:
       - name: Run pytest with coverage
         run: pytest --cov=app --cov-report=term-missing
 
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          API_TOKEN: ${{secrets.API_TOKEN }}
+        e
