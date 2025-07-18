@@ -1,16 +1,20 @@
 import os
-
 import pytest
 from unittest.mock import MagicMock
-from app.db import get_db
+from fastapi.testclient import TestClient
 from app.main import app
+from app.db import get_db
 
-API_TOKEN = os.getenv("API_TOKEN")
+
+@pytest.fixture(autouse=True)
+def mock_api_token(monkeypatch):
+    monkeypatch.setenv("API_TOKEN", "testtoken")
+    yield
 
 
 @pytest.fixture
 def auth_headers():
-    return {"Authorization": f"Bearer {API_TOKEN}"}
+    return {"Authorization": "Bearer testtoken"}
 
 
 @pytest.fixture
@@ -30,7 +34,5 @@ def override_get_db(mock_db_session):
 
 @pytest.fixture
 def client():
-    from fastapi.testclient import TestClient
-
     with TestClient(app) as c:
         yield c
