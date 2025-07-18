@@ -3,7 +3,7 @@ import os
 import pytest
 from unittest.mock import MagicMock
 
-API_TOKEN = os.getenv("API_TOKEN")
+API_TOKEN = os.getenv("API_TOKEN", "supersecrettoken123")
 
 
 @pytest.fixture
