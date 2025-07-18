@@ -59,5 +59,3 @@ jobs:
 
       - name: Run pytest with coverage
         run: pytest --cov=app --cov-report=term-missing
-
-        e
