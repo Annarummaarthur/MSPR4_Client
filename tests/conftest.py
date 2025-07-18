@@ -2,19 +2,15 @@ import os
 import pytest
 from unittest.mock import MagicMock
 from fastapi.testclient import TestClient
-from app.main import app
 from app.db import get_db
+from app.main import app
 
-
-@pytest.fixture(autouse=True)
-def mock_api_token(monkeypatch):
-    monkeypatch.setenv("API_TOKEN", "testtoken")
-    yield
+API_TOKEN = os.getenv("API_TOKEN", "supersecrettoken123")
 
 
 @pytest.fixture
 def auth_headers():
-    return {"Authorization": "Bearer testtoken"}
+    return {"Authorization": f"Bearer {API_TOKEN}"}
 
 
 @pytest.fixture
