@@ -1,9 +1,26 @@
-from sqlalchemy import text
-from app.db import SessionLocal
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.exc import SQLAlchemyError
+import os
+from dotenv import load_dotenv
 
-try:
-    db = SessionLocal()
-    db.execute(text("SELECT 1"))
-    print("✅ Connexion à la base OK")
-except Exception as e:
-    print("❌ Erreur de connexion :", e)
+load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+engine = create_engine(DATABASE_URL)
+
+SessionLocal = sessionmaker(bind=engine)
+
+def test_connection():
+    try:
+        with engine.connect() as connection:
+            result = connection.execute(text("SELECT * FROM clients LIMIT 5;")) 
+            print("✅ Connexion réussie à la base Supabase")
+            for row in result:
+                print(row)  # Affiche toutes les colonnes de chaque ligne
+    except SQLAlchemyError as e:
+        print("❌ Erreur de connexion :", e)
+
+if __name__ == "__main__":
+    test_connection()
