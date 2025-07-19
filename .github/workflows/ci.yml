@@ -2,19 +2,9 @@ name: Run FastAPI Tests
 
 on:
   push:
-    branches:
-      - 'main'
-      - 'développement'
-      - 'feature/**'
-      - main
-
+    branches: [main, développement, 'feature/**']
   pull_request:
-    branches:
-      - 'main'
-      - 'développement'
-      - 'feature/**'
-      - main
-
+    branches: [main, développement, 'feature/**']
 
 jobs:
   test:
@@ -50,12 +40,10 @@ jobs:
           pip install -r requirements.txt
 
       - name: Wait for DB to be ready
-        run: |
-          echo "Waiting for DB to be ready..."
-          sleep 10  # ou utilise psycopg2 pour vérifier activement la connexion
+        run: sleep 10
 
       - name: Run tests
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/testdb
-        run: |
-          pytest tests/
+          API_TOKEN: ${{ secrets.API_TOKEN }}
+        run: pytest tests/
