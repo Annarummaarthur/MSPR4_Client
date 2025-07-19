@@ -7,8 +7,26 @@ on:
     branches: [main, développement, 'feature/**']
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install black
+        run: pip install black
+
+      - name: Check code formatting with black
+        run: black --check --diff .
+
   test:
     runs-on: ubuntu-latest
+    needs: lint
     services:
       postgres:
         image: postgres:15
