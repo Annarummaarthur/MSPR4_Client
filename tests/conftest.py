@@ -7,6 +7,7 @@ from sqlalchemy.orm import sessionmaker
 
 from app.main import app
 from app.db import Base, get_db
+from app.models import ClientModel
 
 DATABASE_URL = "sqlite:///:memory:"
 API_TOKEN = os.getenv("API_TOKEN", "supersecrettoken123")
@@ -17,7 +18,7 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 @pytest.fixture(scope="function")
 def db_session():
-    Base.metadata.create_all(bind=engine)
+    Base.metadata.create_all(bind=engine)  # Now it knows about ClientModel
     db = TestingSessionLocal()
     yield db
     db.close()
