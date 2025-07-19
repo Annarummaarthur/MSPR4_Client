@@ -8,16 +8,13 @@ from sqlalchemy.orm import sessionmaker
 from app.main import app
 from app.db import Base, get_db
 
-# Créer un moteur pour une base SQLite en mémoire
 DATABASE_URL = "sqlite:///:memory:"
 API_TOKEN = os.getenv("API_TOKEN", "supersecrettoken123")
 
-# Créer une nouvelle session de test liée à cette base mémoire
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-# ⚠️ Cette base est utilisée par l'app FastAPI via dependency override
 @pytest.fixture(scope="function")
 def db_session():
     Base.metadata.create_all(bind=engine)

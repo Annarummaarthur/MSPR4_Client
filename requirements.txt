@@ -1,6 +1,8 @@
-fastapi
-uvicorn
-sqlalchemy
-python-dotenv
+fastapi~=0.115.13
+uvicorn~=0.34.3
+sqlalchemy~=2.0.41
+python-dotenv~=1.1.0
 psycopg2-binary
-pydantic[email]
+pydantic[email]~=2.11.7
+
+pytest~=8.4.1
