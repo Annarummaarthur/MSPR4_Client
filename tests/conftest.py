@@ -1,47 +1,43 @@
-# tests/conftest.py
-import os
 import pytest
-from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-
-from app.main import app
 from app.db import Base, get_db
-from app.models import ClientModel
+from app.main import app
+from starlette.testclient import TestClient
 
-DATABASE_URL = "sqlite:///:memory:"
-API_TOKEN = os.getenv("API_TOKEN", "supersecrettoken123")
-
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
 
 
 @pytest.fixture(scope="function")
-def db_session():
-    print(f"Tables in metadata: {list(Base.metadata.tables.keys())}")
+def db_engine():
+    engine = create_engine(
+        SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+    )
     Base.metadata.create_all(bind=engine)
-    db = TestingSessionLocal()
-    yield db
-    db.close()
+    yield engine
     Base.metadata.drop_all(bind=engine)
 
 
 @pytest.fixture(scope="function")
-def override_get_db(db_session):
-    def _get_db():
-        yield db_session
-
-    app.dependency_overrides[get_db] = _get_db
-    yield
-    app.dependency_overrides.clear()
+def db_session(db_engine):
+    TestingSessionLocal = sessionmaker(
+        autocommit=False, autoflush=False, bind=db_engine
+    )
+    session = TestingSessionLocal()
+    yield session
+    session.close()
 
 
 @pytest.fixture(scope="function")
-def client(override_get_db):
-    with TestClient(app) as c:
-        yield c
-
-
-@pytest.fixture
 def auth_headers():
-    return {"Authorization": f"Bearer {API_TOKEN}"}
+    return {"Authorization": "Bearer supersecrettoken123"}
+
+
+@pytest.fixture(scope="function")
+def client(db_session):
+    def override_get_db():
+        yield db_session
+
+    app.dependency_overrides[get_db] = override_get_db
+    yield TestClient(app)
+    app.dependency_overrides.clear()
