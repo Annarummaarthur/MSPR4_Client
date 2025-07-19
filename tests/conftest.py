@@ -1,34 +1,48 @@
+# tests/conftest.py
 import os
 import pytest
-from unittest.mock import MagicMock
 from fastapi.testclient import TestClient
-from app.db import get_db
-from app.main import app
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
+from app.main import app
+from app.db import Base, get_db
+
+# Créer un moteur pour une base SQLite en mémoire
+DATABASE_URL = "sqlite:///:memory:"
 API_TOKEN = os.getenv("API_TOKEN", "supersecrettoken123")
+
+# Créer une nouvelle session de test liée à cette base mémoire
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+
+# ⚠️ Cette base est utilisée par l'app FastAPI via dependency override
+@pytest.fixture(scope="function")
+def db_session():
+    Base.metadata.create_all(bind=engine)
+    db = TestingSessionLocal()
+    yield db
+    db.close()
+    Base.metadata.drop_all(bind=engine)
+
+
+@pytest.fixture(scope="function")
+def override_get_db(db_session):
+    def _get_db():
+        yield db_session
+
+    app.dependency_overrides[get_db] = _get_db
+    yield
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture(scope="function")
+def client(override_get_db):
+    with TestClient(app) as c:
+        yield c
 
 
 @pytest.fixture
 def auth_headers():
     return {"Authorization": f"Bearer {API_TOKEN}"}
-
-
-@pytest.fixture
-def mock_db_session():
-    return MagicMock()
-
-
-@pytest.fixture(autouse=True)
-def override_get_db(mock_db_session):
-    def _get_db_override():
-        yield mock_db_session
-
-    app.dependency_overrides[get_db] = _get_db_override
-    yield
-    app.dependency_overrides.clear()
-
-
-@pytest.fixture
-def client():
-    with TestClient(app) as c:
-        yield c

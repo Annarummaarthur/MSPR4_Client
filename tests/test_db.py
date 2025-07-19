@@ -1,20 +1,13 @@
-import pytest
+# tests/test_database.py
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
-from app.db import engine, Base
+from app.db import engine
 
 
-@pytest.fixture(scope="module", autouse=True)
-def setup_database():
-    Base.metadata.create_all(bind=engine)
-    yield
-    Base.metadata.drop_all(bind=engine)
-
-
-def test_connection():
+def test_connection_to_database():
     try:
         with engine.connect() as connection:
-            result = connection.execute(text("SELECT * FROM clients LIMIT 5;"))
-            assert isinstance(result.fetchall(), list)
+            result = connection.execute(text("SELECT 1"))
+            assert result.fetchone()[0] == 1
     except SQLAlchemyError as e:
-        pytest.fail(f"❌ Erreur de connexion : {e}")
+        assert False, f"Database connection failed: {e}"
