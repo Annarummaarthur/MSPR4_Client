@@ -2,9 +2,19 @@ name: Run FastAPI Tests
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - 'main'
+      - 'développement'
+      - 'feature/**'
+      - main
+
   pull_request:
-    branches: [ main ]
+    branches:
+      - 'main'
+      - 'développement'
+      - 'feature/**'
+      - main
+
 
 jobs:
   test:
