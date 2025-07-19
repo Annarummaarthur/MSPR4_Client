@@ -18,7 +18,8 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 @pytest.fixture(scope="function")
 def db_session():
-    Base.metadata.create_all(bind=engine)  # Now it knows about ClientModel
+    print(f"Tables in metadata: {list(Base.metadata.tables.keys())}")
+    Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()
     yield db
     db.close()
