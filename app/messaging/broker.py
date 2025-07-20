@@ -2,7 +2,7 @@ import aio_pika
 import json
 from typing import Dict, Any, List, Callable
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 import asyncio
 
 
@@ -16,27 +16,43 @@ class MessageBroker:
         self.channel = None
         self.events_exchange = None
 
-    async def connect(self):
-        """Établit la connexion avec RabbitMQ"""
-        try:
-            self.connection = await aio_pika.connect_robust(
-                self.connection_url, loop=asyncio.get_event_loop()
-            )
-            self.channel = await self.connection.channel()
+    async def connect(self, max_retries: int = 5, retry_delay: float = 2.0):
+        """Établit la connexion avec RabbitMQ avec retry logic"""
+        for attempt in range(max_retries):
+            try:
+                print(
+                    f"Attempting RabbitMQ connection (attempt {attempt + 1}/{max_retries})"
+                )
 
-            # Configurer QoS pour éviter la surcharge
-            await self.channel.set_qos(prefetch_count=10)
+                self.connection = await aio_pika.connect_robust(
+                    self.connection_url,
+                    loop=asyncio.get_event_loop(),
+                    connection_timeout=10.0,
+                    heartbeat=60,
+                )
+                self.channel = await self.connection.channel()
 
-            # Déclarer l'exchange principal pour les événements
-            self.events_exchange = await self.channel.declare_exchange(
-                "payetonkawa.events", aio_pika.ExchangeType.TOPIC, durable=True
-            )
+                await self.channel.set_qos(prefetch_count=10)
 
-            print(f"🔗 Message broker connected for service: {self.service_name}")
+                self.events_exchange = await self.channel.declare_exchange(
+                    "payetonkawa.events", aio_pika.ExchangeType.TOPIC, durable=True
+                )
 
-        except Exception as e:
-            print(f"❌ Failed to connect to message broker: {str(e)}")
-            raise
+                print(f"🔗 Message broker connected for service: {self.service_name}")
+                return
+
+            except Exception as e:
+                print(f"Connection attempt {attempt + 1} failed: {str(e)}")
+
+                if attempt < max_retries - 1:
+                    print(f"⏳ Retrying in {retry_delay} seconds...")
+                    await asyncio.sleep(retry_delay)
+                    retry_delay *= 1.5
+                else:
+                    print(
+                        f"Failed to connect to message broker after {max_retries} attempts"
+                    )
+                    raise
 
     async def publish_event(self, event_type: str, data: Dict[str, Any]):
         """Publie un événement sur le message broker"""
@@ -46,7 +62,7 @@ class MessageBroker:
         message_body = {
             "event_type": event_type,
             "event_id": str(uuid.uuid4()),
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "service": self.service_name,
             "data": data,
         }
@@ -55,17 +71,17 @@ class MessageBroker:
             message = aio_pika.Message(
                 json.dumps(message_body, ensure_ascii=False).encode("utf-8"),
                 content_type="application/json",
-                delivery_mode=aio_pika.DeliveryMode.PERSISTENT,  # Persister les messages
+                delivery_mode=aio_pika.DeliveryMode.PERSISTENT,
                 message_id=message_body["event_id"],
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(timezone.utc),
             )
 
             await self.events_exchange.publish(message, routing_key=event_type)
 
-            print(f"📤 Published event: {event_type} | ID: {message_body['event_id']}")
+            print(f"Published event: {event_type} | ID: {message_body['event_id']}")
 
         except Exception as e:
-            print(f"❌ Failed to publish event {event_type}: {str(e)}")
+            print(f"Failed to publish event {event_type}: {str(e)}")
             raise
 
     async def subscribe_to_events(self, event_patterns: List[str], callback: Callable):
@@ -74,29 +90,26 @@ class MessageBroker:
             raise RuntimeError("Message broker not connected")
 
         try:
-            # Créer une queue spécifique au service
             queue_name = f"{self.service_name}.events"
             queue = await self.channel.declare_queue(
                 queue_name, durable=True, exclusive=False
             )
 
-            # Binder la queue aux patterns d'événements
             for pattern in event_patterns:
                 await queue.bind(self.events_exchange, routing_key=pattern)
-                print(f"📥 Subscribed to pattern: {pattern}")
+                print(f"Subscribed to pattern: {pattern}")
 
-            # Commencer à consommer les messages
             await queue.consume(callback)
 
         except Exception as e:
-            print(f"❌ Failed to subscribe to events: {str(e)}")
+            print(f"Failed to subscribe to events: {str(e)}")
             raise
 
     async def close(self):
         """Ferme la connexion proprement"""
         if self.connection and not self.connection.is_closed:
             await self.connection.close()
-            print(f"🔌 Message broker connection closed for {self.service_name}")
+            print(f"Message broker connection closed for {self.service_name}")
 
     @property
     def is_connected(self) -> bool:

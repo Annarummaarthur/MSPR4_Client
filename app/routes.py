@@ -1,6 +1,6 @@
 import os
 from typing import List
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import HTTPException, Depends, Security, APIRouter, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
@@ -26,13 +26,13 @@ async def publish_event_safe(request: Request, event_type: str, data: dict):
         broker = getattr(request.app.state, "broker", None)
         if broker and broker.is_connected:
             await broker.publish_event(event_type, data)
-            print(f"✅ Event published: {event_type}")
+            print(f"Event published: {event_type}")
         else:
             print(
-                f"⚠️ Warning: Message broker not available, event {event_type} not published"
+                f"Warning: Message broker not available, event {event_type} not published"
             )
     except Exception as e:
-        print(f"❌ Error publishing event {event_type}: {str(e)}")
+        print(f"Error publishing event {event_type}: {str(e)}")
 
 
 @router.get("/")
@@ -48,23 +48,28 @@ async def create_client(
     _: HTTPAuthorizationCredentials = Security(verify_token),
 ):
     try:
-        # Créer le client en base de données
-        db_client = ClientModel(**client.model_dump())
+        db_client = ClientModel(
+            **client.model_dump(exclude={"id", "created_at", "updated_at"})
+        )
         db.add(db_client)
         db.commit()
         db.refresh(db_client)
 
-        # Publier l'événement de création
         await publish_event_safe(
             request,
             CUSTOMER_CREATED,
             {
                 "customer_id": db_client.id,
                 "name": db_client.name,
-                "email": getattr(db_client, "email", None),
-                "phone": getattr(db_client, "phone", None),
-                "address": getattr(db_client, "address", None),
-                "created_at": datetime.utcnow().isoformat(),
+                "username": db_client.username,
+                "first_name": db_client.first_name,
+                "last_name": db_client.last_name,
+                "postal_code": db_client.postal_code,
+                "city": db_client.city,
+                "profile_first_name": db_client.profile_first_name,
+                "profile_last_name": db_client.profile_last_name,
+                "company_name": db_client.company_name,
+                "created_at": datetime.now(timezone.utc).isoformat(),
             },
         )
 
@@ -72,7 +77,7 @@ async def create_client(
 
     except Exception as e:
         db.rollback()
-        print(f"❌ Error creating client: {str(e)}")
+        print(f"Error creating client: {str(e)}")
         raise HTTPException(
             status_code=500, detail="Erreur lors de la création du client"
         )
@@ -112,10 +117,15 @@ async def update_client(
             raise HTTPException(status_code=404, detail="Client non trouvé")
 
         old_values = {
-            "name": getattr(client, "name", None),
-            "email": getattr(client, "email", None),
-            "phone": getattr(client, "phone", None),
-            "address": getattr(client, "address", None),
+            "name": client.name,
+            "username": client.username,
+            "first_name": client.first_name,
+            "last_name": client.last_name,
+            "postal_code": client.postal_code,
+            "city": client.city,
+            "profile_first_name": client.profile_first_name,
+            "profile_last_name": client.profile_last_name,
+            "company_name": client.company_name,
         }
 
         changes = updated_client.model_dump(exclude_unset=True)
@@ -130,11 +140,16 @@ async def update_client(
             CUSTOMER_UPDATED,
             {
                 "customer_id": client.id,
-                "name": getattr(client, "name", None),
-                "email": getattr(client, "email", None),
-                "phone": getattr(client, "phone", None),
-                "address": getattr(client, "address", None),
-                "updated_at": datetime.utcnow().isoformat(),
+                "name": client.name,
+                "username": client.username,
+                "first_name": client.first_name,
+                "last_name": client.last_name,
+                "postal_code": client.postal_code,
+                "city": client.city,
+                "profile_first_name": client.profile_first_name,
+                "profile_last_name": client.profile_last_name,
+                "company_name": client.company_name,
+                "updated_at": datetime.now(timezone.utc).isoformat(),
                 "changes": changes,
                 "old_values": old_values,
             },
@@ -146,7 +161,7 @@ async def update_client(
         raise
     except Exception as e:
         db.rollback()
-        print(f"❌ Error updating client: {str(e)}")
+        print(f"Error updating client: {str(e)}")
         raise HTTPException(
             status_code=500, detail="Erreur lors de la mise à jour du client"
         )
@@ -166,11 +181,16 @@ async def delete_client(
 
         client_data = {
             "customer_id": client.id,
-            "name": getattr(client, "name", None),
-            "email": getattr(client, "email", None),
-            "phone": getattr(client, "phone", None),
-            "address": getattr(client, "address", None),
-            "deleted_at": datetime.utcnow().isoformat(),
+            "name": client.name,
+            "username": client.username,
+            "first_name": client.first_name,
+            "last_name": client.last_name,
+            "postal_code": client.postal_code,
+            "city": client.city,
+            "profile_first_name": client.profile_first_name,
+            "profile_last_name": client.profile_last_name,
+            "company_name": client.company_name,
+            "deleted_at": datetime.now(timezone.utc).isoformat(),
         }
 
         db.delete(client)
@@ -184,7 +204,7 @@ async def delete_client(
         raise
     except Exception as e:
         db.rollback()
-        print(f"❌ Error deleting client: {str(e)}")
+        print(f"Error deleting client: {str(e)}")
         raise HTTPException(
             status_code=500, detail="Erreur lors de la suppression du client"
         )

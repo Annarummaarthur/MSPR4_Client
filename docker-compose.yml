@@ -18,7 +18,10 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - db
+      db:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
     env_file:
       - .env
     volumes:
@@ -38,16 +41,16 @@ services:
       RABBITMQ_DEFAULT_PASS: password
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
 networks:
   app-network:
     enable_ipv6: true
-    driver: bridge
-    ipam:
-      driver: default
-      config:
-        - subnet: 172.21.0.0/16
-        - subnet: fd00:dead:beef::/48
 
 volumes:
   postgres_data:

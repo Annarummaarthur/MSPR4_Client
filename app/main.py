@@ -12,7 +12,7 @@ from app.messaging.broker import MessageBroker
 
 load_dotenv()
 
-RABBITMQ_URL = os.getenv("RABBITMQ_URL", "amqp://admin:payetonkawa123@localhost:5672/")
+RABBITMQ_URL = os.getenv("RABBITMQ_URL", "amqp://admin:password@rabbitmq:5672/")
 SERVICE_NAME = "customer-api"
 
 broker = MessageBroker(RABBITMQ_URL, SERVICE_NAME)
@@ -40,21 +40,24 @@ async def handle_external_events(message: aio_pika.IncomingMessage):
                 print(f"Order cancelled for customer: {customer_id}")
 
         except json.JSONDecodeError:
-            print("❌ Error: Invalid JSON in message")
+            print("Error: Invalid JSON in message")
         except Exception as e:
-            print(f"❌ Error processing event: {str(e)}")
+            print(f"Error processing event: {str(e)}")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("🚀 Starting Customer API...")
+    print("Starting Customer API...")
 
     Base.metadata.create_all(bind=engine)
-    print("✅ Database tables created")
+    print("Database tables created")
 
     try:
+        # Add debug logging to see what URL is being used
+        print(f"🔗 Attempting to connect to RabbitMQ: {RABBITMQ_URL}")
+
         await broker.connect()
-        print("✅ Connected to message broker")
+        print("Connected to message broker")
 
         await broker.subscribe_to_events(
             event_patterns=[
@@ -66,18 +69,20 @@ async def lifespan(app: FastAPI):
             ],
             callback=handle_external_events,
         )
-        print("✅ Subscribed to external events")
+        print("Subscribed to external events")
 
     except Exception as e:
-        print(f"❌ Failed to connect to message broker: {str(e)}")
+        print(f"Failed to connect to message broker: {str(e)}")
+        print(f"Debug: RABBITMQ_URL = {RABBITMQ_URL}")
+
     app.state.broker = broker
 
     yield
 
-    print("🛑 Shutting down Customer API...")
+    print("Shutting down Customer API...")
     if broker.connection and not broker.connection.is_closed:
         await broker.connection.close()
-        print("✅ Message broker connection closed")
+        print("Message broker connection closed")
 
 
 app = FastAPI(
