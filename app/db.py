@@ -8,12 +8,6 @@ load_dotenv()
 Base = declarative_base()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
-if not DATABASE_URL:
-    if os.getenv("CI") == "true" or os.getenv("TESTING") == "true":
-        DATABASE_URL = "sqlite:///:memory:"
-        print("Using in-memory SQLite for tests.")
-    else:
-        raise RuntimeError("DATABASE_URL is not set.")
 
 engine = create_engine(
     DATABASE_URL,
