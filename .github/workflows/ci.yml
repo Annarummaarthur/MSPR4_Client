@@ -2,9 +2,9 @@ name: CI/CD Pipeline - Clients API
 
 on:
   push:
-    branches: [main, développement, 'features/**']
+    branches: [main, développement, 'feature/**']
   pull_request:
-    branches: [main, développement, 'features/**']
+    branches: [main, développement, 'feature/**']
 
 env:
   REGISTRY: ghcr.io
