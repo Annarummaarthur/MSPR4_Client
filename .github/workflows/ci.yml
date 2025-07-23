@@ -8,7 +8,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: mspr/clients-api
+  IMAGE_NAME: beyou-pro/clients-api
 
 jobs:
   lint:
@@ -177,19 +177,17 @@ jobs:
             type=sha,prefix={{branch}}-
             type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Build and push Docker image
+      - name: Build Docker image (no push)
         id: build
         uses: docker/build-push-action@v5
         with:
           context: .
           platforms: linux/amd64,linux/arm64
-          push: true
+          push: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          build-args: |
-            BUILDKIT_INLINE_CACHE=1
 
       - name: Output image
         id: image
@@ -198,6 +196,7 @@ jobs:
   scan-docker-image:
     runs-on: ubuntu-latest
     needs: build-docker
+    if: false
     steps:
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
