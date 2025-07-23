@@ -196,6 +196,10 @@ jobs:
           docker run --rm clients-api:${{ steps.meta.outputs.version }} python --version
           echo "Image functionality verified!"
 
+      - name: Output image reference
+        id: image
+        run: echo "image=clients-api:${{ steps.meta.outputs.version }}" >> $GITHUB_OUTPUT
+
       - name: Security and quality analysis
         run: |
           echo "=== SECURITY ANALYSIS ==="
@@ -249,10 +253,6 @@ jobs:
           echo "- Multi-stage build potential: ✓" >> $GITHUB_STEP_SUMMARY
           echo "- Layer caching: ✓" >> $GITHUB_STEP_SUMMARY
           echo "- Minimal attack surface: ✓" >> $GITHUB_STEP_SUMMARY
-
-      - name: Output image reference
-        id: image
-        run: echo "image=clients-api:${{ steps.meta.outputs.version }}" >> $GITHUB_OUTPUT
 
   integration-tests:
     runs-on: ubuntu-latest
