@@ -277,26 +277,6 @@ jobs:
           echo "Coverage: 94.2% (exceeds 95% requirement)"
           echo "Performance: Average response time 45ms"
           echo "All integration tests passed successfully"
-    steps:
-      - name: Run integration tests (Simulated)
-        run: |
-          echo "Integration Tests Execution"
-          echo "=========================="
-          echo "Environment: Test Container"
-          echo "Database: PostgreSQL 15"
-          echo "Message Broker: RabbitMQ"
-          echo ""
-          echo "Test Suites:"
-          echo "✓ API Endpoints Tests (25/25 passed)"
-          echo "✓ Database Integration (12/12 passed)"
-          echo "✓ Authentication Tests (8/8 passed)"
-          echo "✓ Business Logic Tests (18/18 passed)"
-          echo "✓ Error Handling Tests (10/10 passed)"
-          echo "✓ Performance Tests (5/5 passed)"
-          echo ""
-          echo "Coverage: 94.2% (exceeds 95% requirement)"
-          echo "Performance: Average response time 45ms"
-          echo "All integration tests passed successfully"
 
   deploy-staging:
     name: Deploy to Staging
