@@ -26,7 +26,7 @@ async def handle_external_events(message: aio_pika.IncomingMessage):
             event_type = event.get("event_type")
             data = event.get("data", {})
 
-            print(f"📨 Received event: {event_type} from {event.get('service')}")
+            print(f"Received event: {event_type} from {event.get('service')}")
 
             if event_type == "product.updated":
                 print(f"Product updated: {data.get('product_id')}")
