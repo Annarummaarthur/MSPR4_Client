@@ -161,9 +161,11 @@ jobs:
       - name: Generate image metadata
         id: meta
         run: |
+          # Clean branch name for Docker tag (replace / and other invalid chars)
           BRANCH=${GITHUB_REF#refs/heads/}
+          BRANCH_CLEAN=$(echo "$BRANCH" | sed 's/[^a-zA-Z0-9._-]/-/g')
           COMMIT_SHORT=${GITHUB_SHA:0:7}
-          IMAGE_TAG="$BRANCH-$COMMIT_SHORT"
+          IMAGE_TAG="$BRANCH_CLEAN-$COMMIT_SHORT"
           echo "version=$IMAGE_TAG" >> $GITHUB_OUTPUT
           echo "Local image will be: clients-api:$IMAGE_TAG"
 
