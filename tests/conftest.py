@@ -6,10 +6,7 @@ from app.db import Base, get_db
 from app.main import app
 from starlette.testclient import TestClient
 
-SQLALCHEMY_DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://postgres:MSPR4_Client@db.kziubeguijtomrtufrlm.supabase.co:5432/postgres",
-)
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
 
 
 @pytest.fixture(scope="function")
